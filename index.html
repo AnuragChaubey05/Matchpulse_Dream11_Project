@@ -1,0 +1,740 @@
+<title>Why Did That Just Happen?</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: a broadcast-style scoreboard on top; below it a commentary-style timeline of match moments beside an explainer panel. One column on phones. */
+:root{
+  --font-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --font-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --bg:#EDF2EE;
+  --surface:#F8FAF8;
+  --ink:#10261D;
+  --ink-2:#4A5F55;
+  --line:#CBD8CF;
+  --accent:#B3202A;
+  --accent-ink:#FFFFFF;
+  --board:#0F2A20;
+  --board-ink:#EAF3ED;
+  --board-dim:#9DB8A9;
+  --board-hot:#FFC857;
+  --board-line:#27483A;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1712;
+    --surface:#12251D;
+    --ink:#E8F1EB;
+    --ink-2:#9DB5A8;
+    --line:#24402F;
+    --accent:#FF7B72;
+    --accent-ink:#240607;
+    --board:#050E0A;
+    --board-ink:#EAF3ED;
+    --board-dim:#8DAA9A;
+    --board-hot:#FFC857;
+    --board-line:#1F3A2D;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1712;
+  --surface:#12251D;
+  --ink:#E8F1EB;
+  --ink-2:#9DB5A8;
+  --line:#24402F;
+  --accent:#FF7B72;
+  --accent-ink:#240607;
+  --board:#050E0A;
+  --board-ink:#EAF3ED;
+  --board-dim:#8DAA9A;
+  --board-hot:#FFC857;
+  --board-line:#1F3A2D;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--font-body);-webkit-text-size-adjust:100%}
+.wrap{max-width:1120px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.eyebrow{font:600 12px/1.3 var(--font-body);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);margin:0 0 10px}
+h1{font:700 clamp(36px,7vw,60px)/.95 var(--font-display);text-transform:uppercase;letter-spacing:.005em;margin:0;text-wrap:balance}
+.lede{max-width:56ch;color:var(--ink-2);margin:12px 0 0;font-size:17px}
+
+.bar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;margin-top:20px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0;max-width:100%}
+.field>span,.field>label>span{font:600 12px/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--surface)}
+.seg button{font:500 15px/1 var(--font-body);padding:0 16px;min-height:44px;background:transparent;color:var(--ink);border:0;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+select{font:500 15px var(--font-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:0 12px;min-height:44px;max-width:100%}
+
+.board{margin-top:24px;background:var(--board);color:var(--board-ink);border:1px solid var(--board-line);border-radius:6px;padding:18px 20px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px 32px}
+.teams{display:grid;gap:10px;align-content:center}
+.team{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:baseline;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--board-line)}
+.team:last-child{border-bottom:0;padding-bottom:0}
+.code{font:700 20px/1 var(--font-display);letter-spacing:.06em;color:var(--board-dim)}
+.tname{font:500 16px/1.2 var(--font-body);min-width:0}
+.tname small{display:block;margin-top:3px;font:500 12px/1.2 var(--font-body);color:var(--board-dim);letter-spacing:.06em;text-transform:uppercase}
+.score{font:700 44px/1 var(--font-display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.score small{font:600 15px/1 var(--font-display);color:var(--board-dim);letter-spacing:.04em;margin-left:6px}
+.chase{display:flex;flex-direction:column;gap:6px;justify-content:center;min-width:0}
+.chase .k{font:600 12px/1.2 var(--font-body);letter-spacing:.12em;text-transform:uppercase;color:var(--board-dim)}
+.chase .need{font:700 clamp(30px,5vw,40px)/1 var(--font-display);color:var(--board-hot);text-transform:uppercase;letter-spacing:.01em}
+.chase .sub{font-size:14px;color:var(--board-dim)}
+.crease{font-size:14px;border-top:1px solid var(--board-line);padding-top:10px;margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 16px;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.board{grid-template-columns:minmax(0,1fr)}}
+
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:28px;margin-top:28px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+.sec{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin:0 0 4px}
+.sec h2{font:700 22px/1 var(--font-display);letter-spacing:.06em;text-transform:uppercase;margin:0}
+.sec span{font-size:13px;color:var(--ink-2)}
+.moments{list-style:none;margin:0;padding:0}
+.moment{display:grid;grid-template-columns:60px minmax(0,1fr);gap:12px;width:100%;text-align:left;padding:14px 12px;background:transparent;color:var(--ink);border:1px solid transparent;border-bottom-color:var(--line);border-radius:4px;cursor:pointer;font:inherit}
+.moment:hover{background:var(--surface)}
+.moment[aria-current="true"]{background:var(--surface);border-color:var(--accent)}
+.ov{font:700 28px/1 var(--font-display);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.moment[aria-current="true"] .ov{color:var(--accent)}
+.mbody{display:block;min-width:0}
+.tag{display:block;font:600 11.5px/1.2 var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
+.mt{display:block;font:600 18px/1.25 var(--font-body);margin:4px 0;text-wrap:balance}
+.mw{display:block;font-size:14px;line-height:1.45;color:var(--ink-2)}
+.chip{display:inline-block;font:600 12px/1 var(--font-body);letter-spacing:.04em;padding:5px 8px;border:1px solid var(--line);border-radius:3px;color:var(--ink);background:var(--bg);font-variant-numeric:tabular-nums}
+.mbody .chip{margin-top:8px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:22px;min-width:0}
+.p-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.p-head .tag{display:inline}
+.p-ov{font:700 34px/1 var(--font-display);color:var(--accent);font-variant-numeric:tabular-nums}
+.p-title{font:700 clamp(28px,4.5vw,38px)/1.02 var(--font-display);text-transform:uppercase;letter-spacing:.005em;margin:12px 0 0;text-wrap:balance}
+.lab{display:block;font:600 12px/1.2 var(--font-body);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);margin:22px 0 8px}
+.plain{font-size:18px;line-height:1.55;max-width:62ch;margin:0}
+.fant{margin:0;max-width:62ch}
+.capline{margin:10px 0 0;padding:10px 12px;background:var(--bg);border-radius:4px;font-size:15px;max-width:62ch}
+.capline b{font-weight:600}
+.btn{font:600 15px var(--font-body);min-height:44px;padding:0 16px;border-radius:4px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.small{min-height:36px;padding:0 12px;font-size:14px}
+.btn:disabled{opacity:.6;cursor:default}
+.live{margin-top:16px}
+.ai{margin-top:14px;border:1px dashed var(--accent);border-radius:4px;padding:12px 14px;max-width:62ch}
+.ai-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
+.ai .k{font:600 12px/1.2 var(--font-body);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.ai p{margin:0;white-space:pre-wrap}
+.note{font-size:13px;line-height:1.45;color:var(--ink-2);margin:8px 0 0}
+.rule{border:0;border-top:1px solid var(--line);margin:24px 0 0}
+.askrow{display:flex;gap:8px;flex-wrap:wrap}
+.askrow input{flex:1 1 220px;min-width:0;font:400 16px var(--font-body);padding:0 12px;min-height:44px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.qc{font:500 14px var(--font-body);padding:8px 12px;min-height:36px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);cursor:pointer;text-align:left}
+.qc:hover{border-color:var(--accent)}
+.answer{margin-top:16px;padding:14px;background:var(--bg);border-radius:4px;max-width:62ch}
+.answer .q{font-size:14px;color:var(--ink-2);margin:0 0 8px;overflow-wrap:anywhere}
+.answer .ex{font-size:17px;margin:0;white-space:pre-wrap}
+.answer .fa{margin:10px 0 0;white-space:pre-wrap}
+.answer-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px}
+.foot{margin-top:28px;font-size:13px;color:var(--ink-2);max-width:70ch}
+@media (max-width:520px){.panel{padding:16px}.moment{grid-template-columns:52px minmax(0,1fr);gap:8px}}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow" data-t="eyebrow"></p>
+    <h1>Why did that just happen?</h1>
+    <p class="lede" data-t="lede"></p>
+    <div class="bar">
+      <div class="field">
+        <span data-t="langLabel"></span>
+        <div class="seg" role="group" aria-label="Language">
+          <button type="button" data-lang="en" aria-pressed="true">English</button>
+          <button type="button" data-lang="hi" aria-pressed="false">Hinglish</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="capSel"><span data-t="capLabel"></span></label>
+        <select id="capSel"></select>
+      </div>
+    </div>
+  </header>
+
+  <section class="board" aria-label="Match scoreboard">
+    <div class="teams">
+      <div class="team"><span class="code">NZ</span><span class="tname" data-t="nzName"></span><span class="score">185/10<small>40.2 ov</small></span></div>
+      <div class="team"><span class="code">IND</span><span class="tname" data-t="indName"></span><span class="score">143/5<small>22.4 ov</small></span></div>
+    </div>
+    <div class="chase">
+      <span class="k" data-t="boardK"></span>
+      <span class="need" data-t="boardNeed"></span>
+      <span class="sub" data-t="boardSub"></span>
+      <div class="crease"><span data-t="boardA"></span><span data-t="boardB"></span><span data-t="boardC"></span></div>
+    </div>
+  </section>
+
+  <main class="grid">
+    <section aria-labelledby="momentsH">
+      <div class="sec"><h2 id="momentsH" data-t="moments"></h2><span data-t="newest"></span></div>
+      <ol class="moments" id="feed"></ol>
+    </section>
+
+    <section class="panel" id="panel" aria-labelledby="pTitle">
+      <div class="p-head"><span class="p-ov" id="pOv"></span><span class="chip" id="pScore"></span><span class="tag" id="pTag"></span></div>
+      <h2 class="p-title" id="pTitle"></h2>
+      <h3 class="lab" data-t="plain"></h3>
+      <p class="plain" id="pPlain"></p>
+      <h3 class="lab" data-t="fant"></h3>
+      <p class="fant" id="pFant"></p>
+      <p class="capline"><b data-t="capName"></b>: <span id="pCap"></span></p>
+      <div class="live"><button class="btn" id="liveBtn" type="button" hidden data-t="live"></button></div>
+      <div class="ai" id="liveOut" hidden>
+        <div class="ai-head"><span class="k" data-t="liveLabel"></span><button class="btn ghost small" id="liveStop" type="button" hidden data-t="stop"></button></div>
+        <p id="liveText"></p>
+        <p class="note" id="liveNote"></p>
+      </div>
+
+      <hr class="rule">
+      <form id="askForm" autocomplete="off">
+        <label class="lab" for="askInput" data-t="askLabel"></label>
+        <div class="askrow"><input id="askInput" type="text" maxlength="240" data-tp="askPh"><button class="btn" id="askBtn" type="submit" data-t="askBtn"></button></div>
+      </form>
+      <div class="chips" id="chips"></div>
+      <p class="note" id="aiNote"></p>
+      <div class="answer" id="answer" hidden>
+        <p class="q" id="ansQ"></p>
+        <p class="ex" id="ansEx"></p>
+        <p class="fa" id="ansFa" hidden><b data-t="fant"></b>: <span id="ansFaText"></span></p>
+        <div class="answer-foot"><span class="note" id="ansNote" aria-live="polite"></span><button class="btn ghost small" id="askStop" type="button" hidden data-t="stop"></button></div>
+      </div>
+    </section>
+  </main>
+
+  <p class="foot" data-t="foot"></p>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- Match data: 1st ODI, New Zealand v India, Eden Park, 4 Nov 2026 ---------- */
+var MOMENTS = [
+  { id:"result", ov:"22.4", score:"IND 143/5",
+    tag:{en:"Result · DLS", hi:"Result · DLS"},
+    title:{en:"India win with 9 overs to spare, on 143", hi:"India 9 overs bachakar sirf 143 par jeete"},
+    what:{en:"India finished on 143/5 in 22.4 overs, 42 runs short of New Zealand's 185, and still won by 5 wickets.",
+          hi:"India ne 22.4 overs mein 143/5 banaye, New Zealand ke 185 se 42 runs kam, phir bhi 5 wickets se jeet gaye."},
+    plain:{en:"Rain shortened India's chase, so the target was reset with the Duckworth-Lewis-Stern (DLS) method: 143 off 32 overs. DLS cuts the overs but still counts the wickets a team has in hand, so a lower target is fair. India reached it in 22.4 overs with 5 wickets left, which is why the win is \"by 5 wickets\". The 42-run gap doesn't matter. Only the revised target does.",
+           hi:"Barish ne India ka chase chhota kar diya, isliye Duckworth-Lewis-Stern (DLS) method se naya target bana: 32 overs mein 143. DLS overs kam karta hai par bache hue wickets bhi ginta hai, isliye kam target fair hota hai. India ne yeh 22.4 overs mein 5 wickets haath mein rakhkar hasil kar liya, isliye jeet \"5 wickets se\" hai. 42 runs ka fark matter nahi karta, sirf naya target karta hai."},
+    fantasy:{en:"A chase that ends early means India's lower order barely batted (KL Rahul 3*, Naman Dhir 5*). In rain-risk games, top-order batters get the most chances and finishers can get almost none.",
+             hi:"Chase jaldi khatam hua, isliye India ke neeche ke batters ko lagbhag batting nahi mili (KL Rahul 3*, Naman Dhir 5*). Barish ke khatre wale match mein top-order batters ko sabse zyada mauke milte hain aur finishers ko lagbhag koi nahi."},
+    facts:"India reached 143/5 in 22.4 overs and won by 5 wickets (D/L method). After rain the chase was cut to 32 overs with a revised target of 143. New Zealand had made 185 all out in 40.2 overs." },
+  { id:"wkts", ov:"21.5", score:"IND 136/5",
+    tag:{en:"Wickets", hi:"Wickets"},
+    title:{en:"Three wickets in 13 balls, and India stayed ahead", hi:"13 balls mein 3 wickets, phir bhi India aage"},
+    what:{en:"Jacob Duffy removed Virat Kohli (74), Axar Patel (0) and Shreyas Iyer (15). India went from 124/2 to 136/5.",
+          hi:"Jacob Duffy ne Virat Kohli (74), Axar Patel (0) aur Shreyas Iyer (15) ko out kiya. India 124/2 se 136/5 ho gaya."},
+    plain:{en:"Once play restarts, the target stays fixed at 143. When Kohli fell, India were 124/3 and needed 19 more with over 12 overs left, under 2 runs an over. Three wickets in a row made it tighter, but not dangerous.",
+           hi:"Khel dobara shuru hone ke baad target 143 hi rehta hai. Kohli ke out hone par India 124/3 tha aur 12 se zyada overs mein 19 runs chahiye the, yaani 2 runs per over se kam. Lagatar 3 wickets se thoda dabaav bana, par khatra nahi tha."},
+    fantasy:{en:"Duffy finished with 3 wickets (3/49), the best return of New Zealand's bowlers. On India's side, Axar's 0 off 2 balls is the kind of score that hurts a fantasy team.",
+             hi:"Duffy ne 3 wickets (3/49) liye, New Zealand ke bowlers mein sabse achha. India ki taraf Axar ka 2 balls mein 0 aisa score hai jo fantasy team ko nuksaan pahunchata hai."},
+    facts:"Jacob Duffy dismissed Virat Kohli (74 off 51, c Seifert, 19.4 ov, India 124/3), Axar Patel (0 off 2, c Phillips, 19.6 ov) and Shreyas Iyer (15 off 13, c Nicholls, 21.5 ov, India 136/5)." },
+  { id:"stand", ov:"18.2", score:"IND 114/2",
+    tag:{en:"Partnership", hi:"Partnership"},
+    title:{en:"Kohli and Gill add 113", hi:"Kohli aur Gill ke 113 runs"},
+    what:{en:"Shubman Gill was out for 37 off 56 balls, ending a 113-run stand with Kohli that began after Rohit's duck.",
+          hi:"Shubman Gill 56 balls mein 37 banakar out hue, aur Kohli ke saath 113 runs ki partnership khatam hui jo Rohit ke zero ke baad shuru hui thi."},
+    plain:{en:"A partnership is the runs two batters add together before one of them is out. This one rebuilt the innings. Kohli scored 69 of the 113 at nearly 144 runs per 100 balls, while Gill made 37 at a strike rate of 66. A slow partner is fine when the other is scoring fast, and they kept wickets in hand, which DLS values.",
+           hi:"Partnership matlab do batters ke saath mein banaye hue runs jab tak ek out na ho. Isne innings ko sambhala. 113 mein se 69 Kohli ke the, lagbhag 144 runs per 100 balls ki speed se, jabki Gill ne 66 ke strike rate se 37 banaye. Dusra batter tez khel raha ho toh dheema partner chalta hai, aur unhone wickets bachaye, jo DLS mein kaam aate hain."},
+    fantasy:{en:"Kohli scored fast and Gill didn't, so owning one was worth far more than the other. Many fantasy games reward strike rate as well as runs, so a slow 37 can be worth much less than it looks.",
+             hi:"Kohli ne tez khela aur Gill ne nahi, isliye ek ko chunna doosre se kahin behtar tha. Kai fantasy games runs ke saath strike rate ko bhi reward karte hain, isliye dheema 37 dikhne se kam kaam ka ho sakta hai."},
+    facts:"Shubman Gill was out c Tom Latham b Nathan Smith for 37 off 56 balls at 18.2 overs (India 114/2). The second-wicket stand with Virat Kohli was 113 runs from 104 balls; Kohli made 69 of them off 48." },
+  { id:"rain", ov:"~9", score:"IND 1 down",
+    tag:{en:"Rain · DLS", hi:"Barish · DLS"},
+    title:{en:"Rain stops play: why the target changed", hi:"Barish ruki: target kyun badla"},
+    what:{en:"Rain stopped India's chase early on, for a long break. When play restarted, the chase was cut to 32 overs and the target became 143.",
+          hi:"Barish ne India ka chase shuru mein hi rok diya, kaafi lambe break ke liye. Khel dobara shuru hone par chase 32 overs ka ho gaya aur target 143 ban gaya."},
+    plain:{en:"When rain takes overs away, the chasing team can't be asked for the full total in fewer overs. DLS (Duckworth-Lewis-Stern) turns runs, overs left and wickets in hand into one \"resource\" figure and scales the target to fit. New Zealand scored 185 using all their wickets. India's shorter 32-over chase was worth just over three-quarters of that, so the target came down to 143.",
+           hi:"Jab barish se overs kam hote hain, toh chase karne wali team se kam overs mein poora total nahi maanga ja sakta. DLS (Duckworth-Lewis-Stern) runs, bache hue overs aur bache hue wickets ko ek \"resource\" figure mein badalta hai aur target ko usi ke hisaab se chhota karta hai. New Zealand ne apne saare wickets use karke 185 banaye. India ka 32 overs ka chase uska lagbhag teen-chauthai se thoda zyada tha, isliye target 143 ho gaya."},
+    fantasy:{en:"With fewer overs, top-order batters get the most chances and tail-enders barely bat. Bowlers lose overs too, so there are fewer wicket chances. Rain-risk matches favour top-order batters.",
+             hi:"Kam overs mein top-order batters ko sabse zyada mauke milte hain aur tail-enders ko lagbhag batting nahi milti. Bowlers ke overs bhi kam ho jaate hain, isliye wicket ke mauke kam. Barish ke khatre wale matches top-order batters ke haq mein hote hain."},
+    facts:"Rain interrupted India's chase early on, somewhere between overs 9 and 13. The chase was reduced to 32 overs with a revised DLS target of 143, after New Zealand made 185 all out." },
+  { id:"duck", ov:"1.0", score:"IND 1/1",
+    tag:{en:"Duck", hi:"Duck"},
+    title:{en:"Rohit gone for a duck", hi:"Rohit zero par out"},
+    what:{en:"Rohit Sharma faced 6 balls without scoring and was caught by Mitchell Santner off Kyle Jamieson.",
+          hi:"Rohit Sharma ne 6 balls khele bina koi run banaye aur Mitchell Santner ne Kyle Jamieson ki ball par unka catch pakda."},
+    plain:{en:"A duck is an out for zero. \"c Santner b Jamieson\" means Santner caught it and Jamieson gets the wicket. It wasn't a golden duck, which is out first ball, because Rohit faced 6. India's first wicket fell with 1 run on the board, and that run was a wide.",
+           hi:"Duck matlab zero par out. \"c Santner b Jamieson\" ka matlab Santner ne catch pakda aur wicket Jamieson ke naam. Yeh golden duck nahi tha (jo pehli ball par out hone par hota hai), kyunki Rohit ne 6 balls khele. India ka pehla wicket 1 run par gira, aur woh run ek wide tha."},
+    fantasy:{en:"Most fantasy games penalise a duck, so owning Rohit, and more so captaining him, hurt from the first over. This is why people often keep their vice-captain from a different part of the batting order.",
+             hi:"Zyadatar fantasy games duck par points kaat'te hain, isliye Rohit ko chunna, aur khaaskar captain banana, pehle hi over se nuksaan pahunchane laga. Isi liye log aksar vice-captain batting order ke alag hisse se chunte hain."},
+    facts:"Rohit Sharma was out for 0 off 6 balls, caught by Mitchell Santner off Kyle Jamieson, in the first over with India on 1/1." },
+  { id:"tickner", ov:"40.2", score:"NZ 185 all out",
+    tag:{en:"Lower order", hi:"Lower order"},
+    title:{en:"No. 11 hits four sixes", hi:"No. 11 ne 4 chhakke maare"},
+    what:{en:"Blair Tickner made 34 off 23 balls, adding 39 for the last wicket before Gurnoor Brar had him caught by KL Rahul.",
+          hi:"Blair Tickner ne 23 balls mein 34 banaye aur aakhri wicket ke liye 39 jode, phir Gurnoor Brar ki ball par KL Rahul ne catch pakda."},
+    plain:{en:"At 146/9 New Zealand looked like finishing near 150. Tickner's 4 sixes pushed them to 185, and those runs became part of India's target. New Zealand were then \"all out\", which means the innings is over even with overs left: 9.4 overs went unused.",
+           hi:"146/9 par New Zealand 150 ke aaspaas khatam hota dikh raha tha. Tickner ke 4 chhakkon ne unhe 185 tak pahunchaya, aur yeh runs India ke target ka hissa ban gaye. Phir New Zealand \"all out\" ho gaya, yaani overs bache hone par bhi innings khatam: 9.4 overs use hi nahi hue."},
+    fantasy:{en:"Almost nobody has a No. 11 in their fantasy team, so this mostly hurt people holding India's bowlers. Brar still got his third wicket (3/44), which helped his owners.",
+             hi:"No. 11 batter lagbhag kisi ki fantasy team mein nahi hota, isliye isne zyada tar India ke bowlers ko chunne walon ko nuksaan diya. Brar ko phir bhi apna teesra wicket (3/44) mila, jo unke owners ke kaam aaya."},
+    facts:"At 146/9 New Zealand were nearly done. Blair Tickner made 34 off 23 balls with 4 sixes, adding 39 for the last wicket with Jacob Duffy, before KL Rahul caught him off Gurnoor Brar at 40.2 overs. NZ were all out for 185 with 9.4 overs unused." },
+  { id:"runout", ov:"21.1", score:"NZ 97/5",
+    tag:{en:"Run out", hi:"Run out"},
+    title:{en:"Mitchell run out: who gets the wicket?", hi:"Mitchell run out: wicket kiska?"},
+    what:{en:"Daryl Mitchell was run out for 28 off 41 balls. Rohit Sharma was the fielder credited, and Axar Patel was bowling.",
+          hi:"Daryl Mitchell 41 balls mein 28 banakar run out hue. Fielder ke taur par Rohit Sharma ka naam hai, aur bowling Axar Patel kar rahe the."},
+    plain:{en:"A run out is when the fielding side breaks the stumps while a batter is still short of the crease. It isn't the bowler's wicket, even though he bowled that ball. Axar is listed as the bowler, but the credit goes to the fielder.",
+           hi:"Run out tab hota hai jab fielding team stumps tod deti hai aur batter abhi crease ke andar nahi pahuncha. Yeh bowler ka wicket nahi hota, chahe ball usne hi phenki ho. Axar bowler ke taur par likhe hain, par credit fielder ko jaata hai."},
+    fantasy:{en:"Bowlers don't earn wicket points for a run out, so Axar's owners got nothing from it. Fielders usually earn run-out points, which is why Rohit's owners got a small bonus from a bad day. Check your app's rules for details.",
+             hi:"Run out par bowler ko wicket ke points nahi milte, isliye Axar ke owners ko kuch nahi mila. Fielder ko aam taur par run-out ke points milte hain, isliye Rohit ke owners ko kharab din mein thoda bonus mila. Details ke liye apne app ke rules dekhiye."},
+    facts:"Daryl Mitchell was run out for 28 off 41 balls at 21.1 overs (NZ 97/5). Rohit Sharma was credited as the fielder; Axar Patel was the bowler on the delivery." },
+  { id:"brar", ov:"16.6", score:"NZ 84/4",
+    tag:{en:"Caught & bowled", hi:"Caught & bowled"},
+    title:{en:"Brar takes two, one a return catch", hi:"Brar ke 2 wicket, ek return catch"},
+    what:{en:"Gurnoor Brar had Tim Seifert caught for 38, then caught and bowled Tom Latham for 3, taking NZ from 73/3 to 84/4.",
+          hi:"Gurnoor Brar ne Tim Seifert ko 38 par caught out karaya, phir Tom Latham ko 3 par caught and bowled kiya, NZ 73/3 se 84/4 ho gaya."},
+    plain:{en:"\"Caught and bowled\" means the bowler took the catch himself, off his own ball. He is credited with both the wicket and the catch. Seifert's 38 was New Zealand's top score, so losing him in the 15th over put them under pressure.",
+           hi:"\"Caught and bowled\" matlab bowler ne apni hi ball par khud catch pakda. Use wicket aur catch dono ka credit milta hai. Seifert ka 38 New Zealand ka top score tha, isliye 15th over mein unke out hone se team pe dabaav aa gaya."},
+    fantasy:{en:"A caught-and-bowled usually earns the bowler both wicket points and catch points, so owning Brar paid off here. He finished with 3/44 from 9.2 overs.",
+             hi:"Caught-and-bowled par bowler ko aam taur par wicket aur catch dono ke points milte hain, isliye Brar ko chunna faydemand raha. Unhone 9.2 overs mein 3/44 liye."},
+    facts:"Gurnoor Brar dismissed Tim Seifert (38, 14.2 ov, NZ 73/3) and then Tom Latham, caught and bowled for 3 (16.6 ov, NZ 84/4). Brar finished with 3/44 from 9.2 overs." },
+  { id:"pp", ov:"10.0", score:"NZ 45/2",
+    tag:{en:"Powerplay", hi:"Powerplay"},
+    title:{en:"First powerplay ends", hi:"Pehla powerplay khatam"},
+    what:{en:"The first 10 overs are done, and the fielding side can now spread out. Arshdeep Singh had taken both wickets.",
+          hi:"Pehle 10 overs poore, ab fielding team field faila sakti hai. Arshdeep Singh ne dono wickets liye the."},
+    plain:{en:"In an ODI, overs 1 to 10 are the first powerplay: only 2 fielders can stand outside the 30-yard circle. From overs 11 to 40, up to 4 can, and from 41 to 50, up to 5. So runs come most easily in the first 10 and the last 10.",
+           hi:"ODI mein overs 1 se 10 pehla powerplay hote hain: sirf 2 fielders 30-yard circle ke bahar reh sakte hain. Overs 11 se 40 mein 4 tak aur 41 se 50 mein 5 tak. Isliye runs sabse aasaani se pehle 10 aur aakhri 10 overs mein aate hain."},
+    fantasy:{en:"Openers get the most open field early, and swing bowlers do their damage here. Arshdeep took Will Young and Henry Nicholls inside the first 9 overs.",
+             hi:"Openers ko shuru mein sabse khuli field milti hai, aur swing bowlers yahin nuksaan karte hain. Arshdeep ne pehle 9 overs mein Will Young aur Henry Nicholls ko out kiya."},
+    facts:"The first ODI powerplay (overs 1 to 10) ended with NZ on 45/2. Arshdeep Singh had taken both wickets: Will Young (9, c Iyer, 4.3 ov) and Henry Nicholls (9, c Dhir, 8.3 ov)." }
+];
+
+var PLAYERS = [
+  { id:"kohli", name:"Virat Kohli", team:"IND", note:"74 off 51",
+    line:{en:"Kohli made 74 off 51 and won the game for India. This is the innings a captain pick hopes for.",
+          hi:"Kohli ne 51 balls mein 74 banaye aur India ko jitaya. Captain pick se aisi hi innings ki umeed hoti hai."},
+    facts:"batter, 74 off 51 balls (13 fours, 1 six)" },
+  { id:"gill", name:"Shubman Gill", team:"IND", note:"37 off 56",
+    line:{en:"Gill made 37 off 56. A slow innings, so as a captain pick it would have left you wanting more.",
+          hi:"Gill ne 56 balls mein 37 banaye. Dheemi innings, isliye captain pick ke taur par aur ki ummeed rahi."},
+    facts:"batter, 37 off 56 balls" },
+  { id:"rohit", name:"Rohit Sharma", team:"IND", note:"0 off 6",
+    line:{en:"Rohit made 0 off 6, the worst start for a captain pick. His fielding on Mitchell's run out earned him a small consolation.",
+          hi:"Rohit ne 6 balls mein 0 banaye, captain pick ke liye sabse bura shuruaat. Mitchell ke run out mein unki fielding se thoda dilaasa mila."},
+    facts:"batter, 0 off 6 balls; credited as the fielder on Daryl Mitchell's run out" },
+  { id:"arsh", name:"Arshdeep Singh", team:"IND", note:"4/70",
+    line:{en:"Arshdeep took 4 wickets (4/70), India's best bowling return. He was expensive at 7 an over, but wickets are what earn points.",
+          hi:"Arshdeep ne 4 wickets (4/70) liye, India ka sabse achha bowling return. 7 runs per over se mehnge rahe, par points wickets se hi milte hain."},
+    facts:"bowler, 4 wickets for 70 in 10 overs" },
+  { id:"brar", name:"Gurnoor Brar", team:"IND", note:"3/44",
+    line:{en:"Brar took 3 wickets (3/44), including a caught-and-bowled. A strong return for a bowler pick.",
+          hi:"Brar ne 3 wickets (3/44) liye, ek caught-and-bowled ke saath. Bowler pick ke liye achha return."},
+    facts:"bowler, 3 wickets for 44 in 9.2 overs, including a caught-and-bowled" },
+  { id:"kamboj", name:"Anshul Kamboj", team:"IND", note:"2/22",
+    line:{en:"Kamboj took 2/22 from 10 overs with 2 maidens. Tight and efficient, though 2 wickets is a modest haul.",
+          hi:"Kamboj ne 10 overs mein 2/22 liye, 2 maiden ke saath. Kasa hua spell, par 2 wickets ka haul modest hai."},
+    facts:"bowler, 2 wickets for 22 in 10 overs with 2 maidens" },
+  { id:"seifert", name:"Tim Seifert", team:"NZ", note:"38 off 43",
+    line:{en:"Seifert made 38 off 43, New Zealand's top score, so he would have been a decent pick on the losing side.",
+          hi:"Seifert ne 43 balls mein 38 banaye, New Zealand ka top score, haarne wali team mein bhi achha pick."},
+    facts:"batter, 38 off 43 balls, New Zealand's top scorer" },
+  { id:"duffy", name:"Jacob Duffy", team:"NZ", note:"3/49",
+    line:{en:"Duffy took 3/49, all in India's chase, including Kohli. He was the best New Zealand bowler on the day.",
+          hi:"Duffy ne 3/49 liye, sab India ke chase mein, Kohli ke wicket ke saath. Din ke sabse achhe New Zealand bowler rahe."},
+    facts:"bowler, 3 wickets for 49 in 7 overs (Kohli, Axar Patel, Shreyas Iyer)" },
+  { id:"tickner", name:"Blair Tickner", team:"NZ", note:"34 off 23",
+    line:{en:"Tickner made 34 off 23 with 4 sixes at No. 11, then went wicketless with the ball (0/38). A surprise, not a plan.",
+          hi:"Tickner ne No. 11 par 23 balls mein 34 banaye, 4 chhakke, phir bowling mein wicket nahi mila (0/38). Surprise tha, plan nahi."},
+    facts:"No. 11 batter, 34 off 23 balls with 4 sixes; 0 wickets for 38 in 4 overs" }
+];
+
+var ROUTES = [
+  { id:"result", re:/win|won|jeet|result|why did india|9 overs|spare/ },
+  { id:"rain", re:/dls|duckworth|rain|barish|target|reduc|32 over/ },
+  { id:"duck", re:/duck|golden|rohit|zero/ },
+  { id:"runout", re:/run ?out|run-out/ },
+  { id:"brar", re:/caught (and|&) bowled|c ?& ?b|return catch|brar/ },
+  { id:"pp", re:/power ?play|circle|fielder|field restriction/ },
+  { id:"stand", re:/partnership|strike ?rate|stand|gill|kohli/ },
+  { id:"tickner", re:/all out|tail|last wicket|tickner|no\.? ?11|unused/ },
+  { id:"wkts", re:/duffy|wickets? in a row|collapse|three wickets/ }
+];
+
+/* ---------- Interface text ---------- */
+var T = {
+  en:{
+    eyebrow:"Replay · 1st ODI · New Zealand v India · Eden Park · 4 Nov 2026",
+    lede:"India beat New Zealand today in a rain-hit game. Tap any moment to get the rule in plain words and what it meant for a fantasy team.",
+    langLabel:"Language", capLabel:"Your captain",
+    nzName:"New Zealand<small>Batted first</small>", indName:"India<small>Chased</small>",
+    boardK:"Final · rain-hit", boardNeed:"India won by 5 wkts",
+    boardSub:"D/L method. Target 143 off 32 overs, reached in 22.4 overs.",
+    boardA:"Toss: India bowled", boardB:"Kohli 74 (51)", boardC:"Arshdeep 4/70",
+    moments:"Moments", newest:"Newest first",
+    plain:"In plain words", fant:"For your fantasy team", capName:"Your captain",
+    live:"Ask AI what this means for my captain", liveLabel:"AI's read",
+    stop:"Stop", thinking:"Thinking…",
+    askLabel:"Still confused? Ask about anything in this match.", askPh:"Type your question", askBtn:"Ask",
+    youAsked:"You asked:",
+    liveBadge:"Written live by AI. It can be wrong, so check the scorecard or rulebook for anything that matters.",
+    preparedBadge:"Prepared answer. Live AI isn't available in this view.",
+    aiOn:"Answers to your own questions are written live by AI.",
+    aiOff:"Live AI isn't available in this view, so you'll see prepared answers for the topics in this match.",
+    unavail:"Live AI isn't available right now.",
+    rate:"Too many questions at once. Try again in a minute.",
+    refused:"The AI couldn't answer that. Try rewording it.",
+    signin:"Sign in again to use live answers.",
+    error:"Something went wrong. Try again.",
+    stopped:"Stopped.", cut:"The answer was cut short.",
+    noMatch:"Without live AI I can only answer questions about the moments listed here: the result and DLS, rain, Rohit's duck, partnerships, run outs, caught and bowled, the powerplay, and the last-wicket stand. Tap one of them.",
+    foot:"Match details come from a sports data feed and live match blogs, and they disagree on small points, so check the official scorecard before quoting anything. The 32-over length is worked out from the feed (22.4 overs bowled plus 9.2 left). Explanations follow standard ICC ODI rules; fantasy notes are general because scoring differs by app.",
+    chips:["Why did India win with 9 overs left?","What is DLS?","What does caught and bowled mean?","Was Kohli a good captain pick?"]
+  },
+  hi:{
+    eyebrow:"Replay · 1st ODI · New Zealand v India · Eden Park · 4 Nov 2026",
+    lede:"India ne aaj New Zealand ko barish se prabhavit match mein haraya. Koi bhi moment tap kijiye aur rule aasaan bhasha mein padhiye, saath mein yeh bhi ki fantasy team ke liye iska kya matlab tha.",
+    langLabel:"Bhasha", capLabel:"Aapka captain",
+    nzName:"New Zealand<small>Pehle batting</small>", indName:"India<small>Chase kiya</small>",
+    boardK:"Final · barish wala match", boardNeed:"India 5 wickets se jeete",
+    boardSub:"D/L method. 32 overs mein target 143, 22.4 overs mein hasil.",
+    boardA:"Toss: India ne bowling li", boardB:"Kohli 74 (51)", boardC:"Arshdeep 4/70",
+    moments:"Moments", newest:"Sabse naya upar",
+    plain:"Aasaan bhasha mein", fant:"Aapki fantasy team ke liye", capName:"Aapka captain",
+    live:"AI se poochiye mere captain ke liye iska kya matlab hai", liveLabel:"AI ka read",
+    stop:"Roko", thinking:"Soch raha hoon…",
+    askLabel:"Abhi bhi confusion hai? Match ke baare mein kuch bhi poochiye.", askPh:"Apna sawaal likhiye", askBtn:"Pucho",
+    youAsked:"Aapne poocha:",
+    liveBadge:"AI ne live likha hai. Galti ho sakti hai, isliye zaroori baat ke liye scorecard ya rulebook check kijiye.",
+    preparedBadge:"Pehle se taiyaar jawab. Is view mein live AI available nahi hai.",
+    aiOn:"Aapke apne sawaalon ke jawab AI live likhta hai.",
+    aiOff:"Is view mein live AI available nahi hai, isliye is match ke topics ke taiyaar jawab dikhenge.",
+    unavail:"Live AI abhi available nahi hai.",
+    rate:"Ek saath bahut sawaal ho gaye. Ek minute baad try kijiye.",
+    refused:"AI is sawaal ka jawab nahi de paaya. Thoda alag tareeke se poochiye.",
+    signin:"Live jawab ke liye dobara sign in kijiye.",
+    error:"Kuch gadbad ho gayi. Dobara try kijiye.",
+    stopped:"Roka gaya.", cut:"Jawab beech mein hi kat gaya.",
+    noMatch:"Live AI ke bina main sirf yahan listed moments ke baare mein bata sakta hoon: result aur DLS, barish, Rohit ka duck, partnerships, run out, caught and bowled, powerplay aur aakhri wicket ki partnership. Inmein se kisi ko tap kijiye.",
+    foot:"Match ki details ek sports data feed aur live match blogs se hain, aur chhoti baaton mein unmein farq hai, isliye kuch bhi quote karne se pehle official scorecard check kijiye. 32 overs ki length feed se nikaali gayi hai (22.4 overs ho chuke plus 9.2 baaki). Samjhaaye gaye rules standard ICC ODI rules hain; fantasy notes general hain kyunki scoring har app mein alag hoti hai.",
+    chips:["India 9 overs bachakar kaise jeeta?","DLS kya hai?","Caught and bowled ka matlab kya hai?","Kya Kohli achha captain pick tha?"]
+  }
+};
+
+/* ---------- Helpers ---------- */
+function $(id){ return document.getElementById(id); }
+var store = {
+  get:function(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set:function(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+};
+var state = { lang: store.get("wdjh.lang")==="hi" ? "hi" : "en", mid:"result", cap:"kohli" };
+var savedCap = store.get("wdjh.cap");
+for(var i=0;i<PLAYERS.length;i++){ if(PLAYERS[i].id===savedCap){ state.cap=savedCap; } }
+
+var sample = null, liveCtl = null, askCtl = null;
+
+function curMoment(){ for(var i=0;i<MOMENTS.length;i++){ if(MOMENTS[i].id===state.mid) return MOMENTS[i]; } return MOMENTS[0]; }
+function curPlayer(){ for(var i=0;i<PLAYERS.length;i++){ if(PLAYERS[i].id===state.cap) return PLAYERS[i]; } return PLAYERS[0]; }
+function momentById(id){ for(var i=0;i<MOMENTS.length;i++){ if(MOMENTS[i].id===id) return MOMENTS[i]; } return null; }
+
+/* ---------- Rendering ---------- */
+function applyLang(){
+  var t = T[state.lang];
+  document.documentElement.lang = state.lang==="hi" ? "hi-Latn" : "en";
+  var els = document.querySelectorAll("[data-t]");
+  for(var i=0;i<els.length;i++){
+    var k = els[i].getAttribute("data-t");
+    if(t[k]!==undefined){
+      if(k==="nzName" || k==="indName"){ els[i].innerHTML = t[k]; } else { els[i].textContent = t[k]; }
+    }
+  }
+  var ps = document.querySelectorAll("[data-tp]");
+  for(var j=0;j<ps.length;j++){ var pk = ps[j].getAttribute("data-tp"); if(t[pk]!==undefined) ps[j].setAttribute("placeholder", t[pk]); }
+  var seg = document.querySelectorAll(".seg button");
+  for(var s=0;s<seg.length;s++){ seg[s].setAttribute("aria-pressed", seg[s].getAttribute("data-lang")===state.lang ? "true" : "false"); }
+  buildCaptainSelect();
+  buildFeed();
+  buildChips();
+  renderPanel();
+  aiReady();
+}
+
+function buildCaptainSelect(){
+  var sel = $("capSel");
+  sel.innerHTML = "";
+  for(var i=0;i<PLAYERS.length;i++){
+    var p = PLAYERS[i], o = document.createElement("option");
+    o.value = p.id;
+    o.textContent = p.name+" ("+p.team+", "+p.note+")";
+    if(p.id===state.cap) o.selected = true;
+    sel.appendChild(o);
+  }
+}
+
+function buildFeed(){
+  var feed = $("feed"), html = "";
+  for(var i=0;i<MOMENTS.length;i++){
+    var m = MOMENTS[i];
+    html += '<li><button class="moment" type="button" data-id="'+m.id+'"'+(m.id===state.mid ? ' aria-current="true"' : '')+'>'
+      + '<span class="ov">'+m.ov+'</span>'
+      + '<span class="mbody"><span class="tag">'+m.tag[state.lang]+'</span>'
+      + '<span class="mt">'+m.title[state.lang]+'</span>'
+      + '<span class="mw">'+m.what[state.lang]+'</span>'
+      + '<span class="chip">'+m.score+'</span></span></button></li>';
+  }
+  feed.innerHTML = html;
+}
+
+function markCurrent(){
+  var bs = document.querySelectorAll(".moment");
+  for(var i=0;i<bs.length;i++){
+    if(bs[i].getAttribute("data-id")===state.mid) bs[i].setAttribute("aria-current","true");
+    else bs[i].removeAttribute("aria-current");
+  }
+}
+
+function buildChips(){
+  var box = $("chips"), list = T[state.lang].chips;
+  box.innerHTML = "";
+  for(var i=0;i<list.length;i++){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "qc"; b.textContent = list[i];
+    box.appendChild(b);
+  }
+}
+
+function renderPanel(){
+  var m = curMoment(), p = curPlayer(), l = state.lang;
+  $("pOv").textContent = m.ov;
+  $("pScore").textContent = m.score;
+  $("pTag").textContent = m.tag[l];
+  $("pTitle").textContent = m.title[l];
+  $("pPlain").textContent = m.plain[l];
+  $("pFant").textContent = m.fantasy[l];
+  $("pCap").textContent = p.line[l];
+}
+
+function aiReady(){
+  var t = T[state.lang];
+  $("liveBtn").hidden = !sample;
+  $("aiNote").textContent = sample ? t.aiOn : t.aiOff;
+}
+
+/* ---------- Claude (the sample capability) ---------- */
+function matchFacts(){
+  var past = MOMENTS.slice().reverse().map(function(m){ return m.ov+": "+m.facts; }).join(" | ");
+  return [
+    "A real, finished match: 1st ODI, New Zealand v India, Eden Park, Auckland, 4 November 2026. India won the toss and chose to bowl.",
+    "New Zealand 185 all out in 40.2 overs (9.4 overs unused). Tim Seifert 38 (43), Blair Tickner 34 (23, four sixes, No. 11), Glenn Phillips 30 (51), Daryl Mitchell 28 (41, run out), Jacob Duffy 15* (21).",
+    "India bowling: Arshdeep Singh 4/70 (10 overs), Gurnoor Brar 3/44 (9.2), Anshul Kamboj 2/22 (10, two maidens), Auqib Nabi 0/33 (6), Axar Patel 0/12 (5).",
+    "Rain stopped India's chase early (somewhere between overs 9 and 13). The chase was cut to 32 overs with a DLS revised target of 143. India reached 143/5 in 22.4 overs and won by 5 wickets (D/L method) with 9.2 overs to spare.",
+    "India batting: Rohit Sharma 0 (6), Shubman Gill 37 (56), Virat Kohli 74 (51), Shreyas Iyer 15 (13), Axar Patel 0 (2), KL Rahul 3*, Naman Dhir 5*. Gill and Kohli added 113 for the second wicket.",
+    "NZ bowling: Jacob Duffy 3/49 (7 overs), Kyle Jamieson 1/34 (7), Nathan Smith 1/21 (4.4), Blair Tickner 0/38 (4).",
+    "Moments, newest to oldest: "+past
+  ].join("\n");
+}
+function captainFacts(p){
+  return p.name+" ("+(p.team==="IND" ? "India" : "New Zealand")+", "+p.facts+")";
+}
+function langInstr(){
+  return state.lang==="hi"
+    ? "Reply in Hinglish: casual Hindi mixed with English, written in Roman script, the way Indian cricket fans talk. No Devanagari."
+    : "Reply in simple, friendly English.";
+}
+function livePrompt(m, p){
+  return [
+    "You are the explainer inside a fantasy cricket app. A fan is replaying a cricket match that has already finished and tapped on a moment. Speak in the past tense.",
+    langInstr(),
+    "Match facts (use only these for match details; never invent events, scores or names):\n"+matchFacts(),
+    "The moment they tapped: over "+m.ov+". "+m.facts,
+    "The rule was already explained to them like this: "+m.plain.en,
+    "Their fantasy captain pick: "+captainFacts(p)+".",
+    'Reply with 2 short sentences only, on what this moment meant for their fantasy team. Mention the captain only if this moment or the match really affects him. Do not quote fantasy point values, and do not say what happens next.'
+  ].join("\n\n");
+}
+function askPrompt(q, p){
+  return [
+    "You are the explainer inside a fantasy cricket app. A fan is replaying a cricket match that has already finished and has a question. Speak in the past tense about the match.",
+    langInstr(),
+    "Match facts (use only these for match details, and say so if the answer is not in them):\n"+matchFacts(),
+    "Their fantasy captain pick: "+captainFacts(p)+".",
+    'Format: first the label "EXPLAIN:" followed by at most 3 short sentences in plain words, defining any jargon in a few words. Then on a new line the label "FANTASY:" followed by one sentence on what it means for their fantasy team, or "FANTASY: -" if it does not matter. Rules follow standard ICC ODI playing conditions; leagues and series can differ slightly, so say so if you are unsure. Never present predictions as certain and never quote fantasy point values. If the question is not about cricket or this match, say in one sentence that you only explain this match, then "FANTASY: -".',
+    "The fan's question:\n"+q
+  ].join("\n\n");
+}
+
+function cleanFantasy(t){ return String(t||"").replace(/^\s*FANTASY:\s*/i,"").trim(); }
+function parseAnswer(t){
+  t = String(t||"");
+  var i = t.search(/FANTASY:/i), ex = i>=0 ? t.slice(0,i) : t, fa = i>=0 ? t.slice(i).replace(/^FANTASY:\s*/i,"") : "";
+  ex = ex.replace(/^\s*EXPLAIN:\s*/i,"").trim();
+  fa = fa.trim();
+  if(fa==="-"||fa==="–"||fa==="—") fa = "";
+  return { ex:ex, fa:fa };
+}
+async function serverAI(prompt, opts){
+  opts = opts || {};
+  var r;
+  try{
+    r = await fetch("/api/explain", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ prompt:prompt }), signal:opts.signal });
+  }catch(e){
+    if(e && e.name==="AbortError") throw { code:"cancelled" };
+    throw { code:"upstream_error" };
+  }
+  if(!r.ok){
+    throw { code: r.status===429 ? "rate_limited" : r.status===422 ? "refused" : (r.status===404||r.status===503) ? "not_declared" : "upstream_error" };
+  }
+  var d;
+  try{ d = await r.json(); }catch(e){ throw { code:"upstream_error" }; }
+  if(!d || !d.text) throw { code:"empty_completion" };
+  if(opts.onText) opts.onText({ text:d.text, delta:d.text });
+  return { text:d.text, truncated:!!d.truncated };
+}
+function failCopy(e){
+  var t = T[state.lang], c = e && e.code;
+  if(c==="cancelled") return { msg:t.stopped, hide:false };
+  if(c==="not_granted"||c==="sampling_disabled"||c==="not_declared"||c==="capability_disabled"||c==="capability_removed"||c==="tools_unavailable") return { msg:t.unavail, hide:true };
+  if(c==="rate_limited") return { msg:t.rate, hide:false };
+  if(c==="refused") return { msg:t.refused, hide:false };
+  if(c==="session_expired") return { msg:t.signin, hide:false };
+  return { msg:t.error, hide:false };
+}
+
+function resetAI(){
+  if(liveCtl){ var a = liveCtl; liveCtl = null; a.abort(); }
+  if(askCtl){ var b = askCtl; askCtl = null; b.abort(); }
+  $("liveOut").hidden = true; $("liveStop").hidden = true; $("liveBtn").disabled = false;
+  $("answer").hidden = true; $("askStop").hidden = true; $("askBtn").disabled = false;
+}
+
+async function runLive(){
+  if(!sample) return;
+  var t = T[state.lang];
+  if(liveCtl){ var old = liveCtl; liveCtl = null; old.abort(); }
+  var ctrl = new AbortController(); liveCtl = ctrl;
+  var out = $("liveText"), note = $("liveNote");
+  $("liveOut").hidden = false; out.textContent = t.thinking; note.textContent = "";
+  $("liveStop").hidden = false; $("liveBtn").disabled = true;
+  try{
+    var res = await sample(livePrompt(curMoment(), curPlayer()), {
+      modelTier:"quick",
+      signal:ctrl.signal,
+      onText:function(u){ if(liveCtl===ctrl) out.textContent = cleanFantasy(u.text); }
+    });
+    if(liveCtl===ctrl){
+      out.textContent = cleanFantasy(res.text);
+      note.textContent = res.truncated ? t.cut : "";
+    }
+  }catch(e){
+    if(liveCtl!==ctrl) return;
+    var f = failCopy(e);
+    if(f.hide){ sample = null; aiReady(); }
+    if(e && e.text){ out.textContent = cleanFantasy(e.text); note.textContent = f.msg; }
+    else { out.textContent = f.msg; note.textContent = ""; }
+  }finally{
+    if(liveCtl===ctrl){ liveCtl = null; $("liveStop").hidden = true; $("liveBtn").disabled = false; }
+  }
+}
+
+function paintAnswer(a){
+  $("ansEx").textContent = a.ex || T[state.lang].thinking;
+  if(a.fa){ $("ansFa").hidden = false; $("ansFaText").textContent = a.fa; }
+  else { $("ansFa").hidden = true; }
+}
+
+function renderFallback(q){
+  var t = T[state.lang], s = q.toLowerCase(), ex = "", fa = "", hit = null;
+  for(var i=0;i<ROUTES.length;i++){ if(ROUTES[i].re.test(s)){ hit = ROUTES[i]; break; } }
+  if(hit){ var m = momentById(hit.id); ex = m.plain[state.lang]; fa = m.fantasy[state.lang]; }
+  else if(/captain|vice/.test(s)){ ex = curPlayer().line[state.lang]; }
+  else { ex = t.noMatch; }
+  paintAnswer({ ex:ex, fa:fa });
+  $("ansNote").textContent = t.preparedBadge;
+}
+
+async function ask(q){
+  q = String(q||"").trim().slice(0,240);
+  if(!q) return;
+  var t = T[state.lang];
+  if(askCtl){ var old = askCtl; askCtl = null; old.abort(); }
+  $("answer").hidden = false;
+  $("ansQ").textContent = t.youAsked+" "+q;
+  $("ansEx").textContent = ""; $("ansFa").hidden = true; $("ansNote").textContent = ""; $("askStop").hidden = true;
+  if(!sample){ renderFallback(q); return; }
+  var ctrl = new AbortController(); askCtl = ctrl;
+  $("ansEx").textContent = t.thinking; $("askStop").hidden = false; $("askBtn").disabled = true;
+  try{
+    var res = await sample(askPrompt(q, curPlayer()), {
+      modelTier:"quick",
+      signal:ctrl.signal,
+      onText:function(u){ if(askCtl===ctrl) paintAnswer(parseAnswer(u.text)); }
+    });
+    if(askCtl===ctrl){
+      paintAnswer(parseAnswer(res.text));
+      $("ansNote").textContent = t.liveBadge + (res.truncated ? " "+t.cut : "");
+    }
+  }catch(e){
+    if(askCtl!==ctrl) return;
+    var f = failCopy(e);
+    if(f.hide){ sample = null; aiReady(); renderFallback(q); return; }
+    var partial = e && e.text ? parseAnswer(e.text) : null;
+    if(partial && partial.ex){ paintAnswer(partial); $("ansNote").textContent = f.msg; }
+    else { $("ansEx").textContent = f.msg; $("ansNote").textContent = ""; }
+  }finally{
+    if(askCtl===ctrl){ askCtl = null; $("askStop").hidden = true; $("askBtn").disabled = false; }
+  }
+}
+
+/* ---------- Events ---------- */
+function selectMoment(id, scroll){
+  state.mid = id;
+  resetAI();
+  markCurrent();
+  renderPanel();
+  if(scroll && window.matchMedia("(max-width: 860px)").matches){
+    var calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    $("panel").scrollIntoView({ behavior: calm ? "auto" : "smooth", block:"start" });
+  }
+}
+
+$("feed").addEventListener("click", function(e){
+  var b = e.target.closest ? e.target.closest(".moment") : null;
+  if(b) selectMoment(b.getAttribute("data-id"), true);
+});
+$("chips").addEventListener("click", function(e){
+  var b = e.target.closest ? e.target.closest(".qc") : null;
+  if(b){ $("askInput").value = b.textContent; ask(b.textContent); }
+});
+$("askForm").addEventListener("submit", function(e){ e.preventDefault(); ask($("askInput").value); });
+$("liveBtn").addEventListener("click", runLive);
+$("liveStop").addEventListener("click", function(){ if(liveCtl) liveCtl.abort(); });
+$("askStop").addEventListener("click", function(){ if(askCtl) askCtl.abort(); });
+$("capSel").addEventListener("change", function(){
+  state.cap = $("capSel").value; store.set("wdjh.cap", state.cap);
+  resetAI(); renderPanel();
+});
+var segBtns = document.querySelectorAll(".seg button");
+for(var si=0; si<segBtns.length; si++){
+  segBtns[si].addEventListener("click", function(){
+    state.lang = this.getAttribute("data-lang"); store.set("wdjh.lang", state.lang);
+    resetAI(); applyLang();
+  });
+}
+
+/* ---------- Start ---------- */
+applyLang();
+(async function(){
+  try{
+    if(window.claude && typeof window.claude.use==="function"){ sample = await window.claude.use("sample"); }
+  }catch(e){ sample = null; }
+  if(!sample){
+    try{
+      var h = await fetch("/api/explain", { method:"GET" });
+      if(h.ok) sample = serverAI;
+    }catch(e){}
+  }
+  aiReady();
+})();
+})();
+</script>
