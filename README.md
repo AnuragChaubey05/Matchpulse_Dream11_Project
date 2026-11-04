@@ -1,36 +1,41 @@
-# Why Did That Just Happen?
+# Matchpulse: "Why did that just happen?"
 
-Tap any moment from a real cricket match (NZ vs India, 1st ODI, 4 Nov 2026) and get the rule in plain English or Hinglish, plus what it meant for your fantasy team. Ask your own questions with live AI (Google Gemini).
+A live-match explainer for casual cricket fans. Tap a moment from a match, or type a question, and get a short plain-English (or Hinglish) explanation plus what it meant for your fantasy team.
 
-## Files
+**Live demo:** https://matchpulsedream11project.vercel.app/
 
-- `index.html`: the whole app (no build step)
-- `api/explain.js`: small server function that calls Gemini. Your API key stays here, never in the page.
+## The problem
 
-## Deploy (about 10 minutes)
+Casual fans hit moments they don't understand during a match: a DLS target, a run out, a free hit, a sudden bowling change. They either ignore it or leave the app to Google it. Matchpulse explains the moment in 2-3 lines and links it to fantasy impact, so the fan stays in the match.
 
-### 1. Get a free Gemini key
-1. Go to https://aistudio.google.com/apikey and sign in with Google.
-2. Click **Create API key** and copy it.
+## Features
 
-### 2. Put the code on GitHub
-1. Create a new repository on github.com (for example `why-did-that-just-happen`).
-2. Click **uploading an existing file**, drag in everything from this folder (`index.html`, `api` folder, `package.json`, `README.md`, `.gitignore`), and click **Commit changes**.
+- Timeline of key moments from one match (1st ODI, NZ v India, 4 Nov 2026)
+- English / Hinglish toggle
+- Ask your own question, answered live by Google Gemini
+- Pick your fantasy captain and see how each moment affected them
+- Prepared answers show up if the AI is unavailable or rate-limited
 
-### 3. Deploy on Vercel (free)
-1. Go to https://vercel.com and sign in with GitHub.
-2. Click **Add New → Project**, pick your repository, and click **Deploy**.
-3. Open the project, go to **Settings → Environment Variables**, and add:
-   - `GEMINI_API_KEY` = your key
-   - (optional) `GEMINI_MODEL` = a model name from https://aistudio.google.com if the default stops working. The default is `gemini-2.5-flash`.
-4. Go to **Deployments**, open the latest one, and choose **Redeploy** so it picks up the key.
-5. Open your Vercel link. Click a moment, then press the AI button. The first question box answer should now be written live.
+## How it works
 
-If the key is missing or the server can't be reached, the page still works and shows prepared answers.
+- `index.html`: the whole front end, plain HTML/CSS/JS, no build step
+- `api/explain.js`: a Vercel serverless function that calls the Gemini API
+- The API key is stored only as a Vercel environment variable (`GEMINI_API_KEY`) and never reaches the browser
+- The function limits prompt size, answer length and requests per visitor, and the system prompt restricts answers to cricket
 
-## Notes
+## Run it yourself
 
-- GitHub Pages alone cannot run live AI because it has no server. Use Vercel (it deploys from the same GitHub repo).
-- Never paste your API key into `index.html` or commit it to GitHub.
-- The server function caps prompt size, answer length and requests per visitor. These limits are best-effort.
-- Match details come from a sports data feed and live match blogs. Check the official scorecard before quoting numbers.
+1. Get a free key at https://aistudio.google.com/apikey
+2. Import this repo into Vercel
+3. Add `GEMINI_API_KEY` under Settings > Environment Variables (optional: `GEMINI_MODEL` to pick the model; backups are tried if it is busy)
+4. Redeploy
+
+## Limitations
+
+- Match data is hardcoded sample data, not a live feed. Check official scorecards before relying on any number
+- The rate limiter is in memory, so it is a soft limit
+- AI answers can be wrong; they are limited to the match facts in the prompt
+
+## Built with
+
+Google Gemini API (live explanations), Claude (AI coding assistant), Vercel, vanilla JavaScript
