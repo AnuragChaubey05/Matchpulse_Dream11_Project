@@ -28,12 +28,34 @@ function limited(ip) {
   return false;
 }
 
+// Google's error message (never contains your key).
+function errText(j) {
+  const e = j && j.error;
+  return e ? String(e.message || e.status || "").slice(0, 300) : "";
+}
+
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   const key = process.env.GEMINI_API_KEY;
 
   // The page calls GET once on load to learn whether live AI is set up.
   if (req.method === "GET") {
+    // /api/explain?models=1 lists the models this key can use (for fixing GEMINI_MODEL).
+    if (key && req.query && req.query.models) {
+      try {
+        const m = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=100", {
+          headers: { "x-goog-api-key": key },
+        });
+        const j = await m.json();
+        if (!m.ok) return res.status(200).json({ ok: true, status: m.status, detail: errText(j) });
+        const names = (j.models || [])
+          .filter((x) => (x.supportedGenerationMethods || []).includes("generateContent"))
+          .map((x) => String(x.name || "").replace(/^models\//, ""));
+        return res.status(200).json({ ok: true, usingModel: process.env.GEMINI_MODEL || "gemini-2.5-flash", models: names });
+      } catch (e) {
+        return res.status(200).json({ ok: true, detail: "could not list models" });
+      }
+    }
     return res.status(key ? 200 : 503).json({ ok: Boolean(key) });
   }
   if (req.method !== "POST") {
@@ -80,8 +102,14 @@ module.exports = async (req, res) => {
       }
     );
 
-    if (r.status === 429) return res.status(429).json({ error: "rate_limited" });
-    if (!r.ok) return res.status(502).json({ error: "upstream_error" });
+    if (!r.ok) {
+      let detail = "";
+      try { detail = errText(await r.json()); } catch (e) {}
+      console.error("Gemini error", r.status, detail);
+      return res
+        .status(r.status === 429 ? 429 : 502)
+        .json({ error: r.status === 429 ? "rate_limited" : "upstream_error", status: r.status, model, detail });
+    }
 
     const data = await r.json();
     if (data.promptFeedback && data.promptFeedback.blockReason) {
@@ -96,6 +124,7 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({ text, truncated: cand.finishReason === "MAX_TOKENS" });
   } catch (e) {
-    return res.status(502).json({ error: "upstream_error" });
+    console.error("explain failed", e && e.message);
+    return res.status(502).json({ error: "upstream_error", detail: "could not reach Gemini" });
   }
 };
